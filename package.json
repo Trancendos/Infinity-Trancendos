@@ -1,0 +1,7 @@
+{
+  "name": "infinity-trancendos",
+  "version": "1.0.0",
+  "main": "src/web/server.js",
+  "dependencies": {}
+}
+

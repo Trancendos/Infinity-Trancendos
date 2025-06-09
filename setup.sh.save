@@ -1,0 +1,6 @@
+
+nano ~/Infinity-Trancendos/setup.s
+
+chmod +x ~/Infinity-Trancendos/setup.sh
+./setup.sh
+
