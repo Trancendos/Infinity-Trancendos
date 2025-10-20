@@ -95,6 +95,12 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 This project is open source and available under the MIT License.
 
+## 📚 Additional Resources
+
+- [QUICKSTART.md](QUICKSTART.md) - Get started in 60 seconds
+- [DEPLOYMENT.md](DEPLOYMENT.md) - Detailed deployment guide
+- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Common issues and solutions
+
 ## 🆘 Crisis Support
 
 If you're experiencing a mental health emergency:
