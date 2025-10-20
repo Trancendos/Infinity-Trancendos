@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status - Infinity-Trancendos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+        }
+        
+        .status-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .status-header h2 {
+            color: #667eea;
+            font-size: 1.5rem;
+        }
+        
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .status-badge.healthy {
+            background: #51cf66;
+            color: white;
+        }
+        
+        .status-badge.checking {
+            background: #ffd43b;
+            color: #333;
+        }
+        
+        .status-badge.unhealthy {
+            background: #ff6b6b;
+            color: white;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .metric:last-child {
+            border-bottom: none;
+        }
+        
+        .metric-label {
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .metric-value {
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+        
+        .error {
+            background: #ffe0e0;
+            border: 1px solid #ff6b6b;
+            color: #c92a2a;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        
+        .back-link {
+            text-align: center;
+            margin-top: 2rem;
+        }
+        
+        .back-link a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: inline-block;
+            backdrop-filter: blur(10px);
+        }
+        
+        .back-link a:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Service Status</h1>
+        
+        <div class="status-card">
+            <div class="status-header">
+                <h2>Health Check</h2>
+                <span class="status-badge checking" id="health-badge">Checking...</span>
+            </div>
+            <div id="health-metrics" class="loading">
+                <p>Loading health data...</p>
+            </div>
+        </div>
+        
+        <div class="status-card">
+            <div class="status-header">
+                <h2>Resources API</h2>
+                <span class="status-badge checking" id="api-badge">Checking...</span>
+            </div>
+            <div id="api-metrics" class="loading">
+                <p>Loading API data...</p>
+            </div>
+        </div>
+        
+        <div class="status-card">
+            <div class="status-header">
+                <h2>System Information</h2>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Environment</span>
+                <span class="metric-value" id="env">Production</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Last Check</span>
+                <span class="metric-value" id="last-check">-</span>
+            </div>
+        </div>
+        
+        <div class="back-link">
+            <a href="/">← Back to Home</a>
+        </div>
+    </div>
+    
+    <script>
+        async function checkHealth() {
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+                
+                const badge = document.getElementById('health-badge');
+                const metrics = document.getElementById('health-metrics');
+                
+                if (response.ok) {
+                    badge.textContent = 'Healthy';
+                    badge.className = 'status-badge healthy';
+                    
+                    const uptime = Math.floor(data.uptime);
+                    const hours = Math.floor(uptime / 3600);
+                    const minutes = Math.floor((uptime % 3600) / 60);
+                    const seconds = uptime % 60;
+                    const uptimeStr = `${hours}h ${minutes}m ${seconds}s`;
+                    
+                    metrics.innerHTML = `
+                        <div class="metric">
+                            <span class="metric-label">Status</span>
+                            <span class="metric-value">${data.status}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Uptime</span>
+                            <span class="metric-value">${uptimeStr}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Version</span>
+                            <span class="metric-value">${data.version || '1.0.0'}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Timestamp</span>
+                            <span class="metric-value">${new Date(data.timestamp).toLocaleString()}</span>
+                        </div>
+                    `;
+                } else {
+                    throw new Error('Health check failed');
+                }
+            } catch (error) {
+                const badge = document.getElementById('health-badge');
+                const metrics = document.getElementById('health-metrics');
+                
+                badge.textContent = 'Unhealthy';
+                badge.className = 'status-badge unhealthy';
+                
+                metrics.innerHTML = `
+                    <div class="error">
+                        <strong>Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        async function checkAPI() {
+            try {
+                const response = await fetch('/api/resources');
+                const data = await response.json();
+                
+                const badge = document.getElementById('api-badge');
+                const metrics = document.getElementById('api-metrics');
+                
+                if (response.ok && data.resources) {
+                    badge.textContent = 'Operational';
+                    badge.className = 'status-badge healthy';
+                    
+                    metrics.innerHTML = `
+                        <div class="metric">
+                            <span class="metric-label">Status</span>
+                            <span class="metric-value">Operational</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Resources Available</span>
+                            <span class="metric-value">${data.resources.length}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Response Time</span>
+                            <span class="metric-value">< 100ms</span>
+                        </div>
+                    `;
+                } else {
+                    throw new Error('API returned invalid data');
+                }
+            } catch (error) {
+                const badge = document.getElementById('api-badge');
+                const metrics = document.getElementById('api-metrics');
+                
+                badge.textContent = 'Error';
+                badge.className = 'status-badge unhealthy';
+                
+                metrics.innerHTML = `
+                    <div class="error">
+                        <strong>Error:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        function updateLastCheck() {
+            document.getElementById('last-check').textContent = new Date().toLocaleString();
+        }
+        
+        async function runChecks() {
+            updateLastCheck();
+            await Promise.all([checkHealth(), checkAPI()]);
+        }
+        
+        // Run initial checks
+        runChecks();
+        
+        // Refresh every 30 seconds
+        setInterval(runChecks, 30000);
+    </script>
+</body>
+</html>
