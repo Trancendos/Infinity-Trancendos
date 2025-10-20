@@ -1,0 +1,42 @@
+name: Health Check Monitor
+
+on:
+  schedule:
+    # Run every 30 minutes
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check Service Health
+      run: |
+        # Add your deployed service URL here once deployed
+        # For now, this is a placeholder that will be updated
+        echo "Health check monitoring configured"
+        echo "Update HEALTH_CHECK_URL in this workflow after deployment"
+        
+        # Example health check (uncomment and update URL after deployment):
+        # HEALTH_CHECK_URL="https://your-app.onrender.com/health"
+        # response=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_CHECK_URL)
+        # if [ $response -eq 200 ]; then
+        #   echo "✅ Service is healthy"
+        # else
+        #   echo "❌ Service health check failed with status: $response"
+        #   exit 1
+        # fi
+    
+    - name: Create Issue on Failure
+      if: failure()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: '🚨 Service Health Check Failed',
+            body: 'The automated health check has detected that the service is down or unhealthy. Please investigate immediately.',
+            labels: ['bug', 'high-priority', 'service-down']
+          })

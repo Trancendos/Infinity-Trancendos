@@ -1,7 +1,17 @@
 {
   "name": "infinity-trancendos",
   "version": "1.0.0",
+  "type": "module",
   "main": "src/web/server.js",
-  "dependencies": {}
+  "scripts": {
+    "start": "node src/web/server.js",
+    "dev": "node src/web/server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }
 
