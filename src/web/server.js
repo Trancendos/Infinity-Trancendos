@@ -24,27 +24,32 @@ app.get('/health', (req, res) => {
 
 // API endpoint for mental health resources
 app.get('/api/resources', (req, res) => {
+  const resources = [
+    {
+      id: 1,
+      title: 'Crisis Helpline',
+      description: 'Available 24/7 for immediate support',
+      contact: '988 (US Suicide & Crisis Lifeline)'
+    },
+    {
+      id: 2,
+      title: 'Breathing Exercises',
+      description: 'Simple techniques to reduce anxiety',
+      url: '/exercises/breathing'
+    },
+    {
+      id: 3,
+      title: 'Mood Tracking',
+      description: 'Track your mental health journey',
+      url: '/tools/mood-tracker'
+    }
+  ];
+  
+  // Sort resources alphabetically by title
+  const sortedResources = resources.sort((a, b) => a.title.localeCompare(b.title));
+  
   res.json({
-    resources: [
-      {
-        id: 1,
-        title: 'Crisis Helpline',
-        description: 'Available 24/7 for immediate support',
-        contact: '988 (US Suicide & Crisis Lifeline)'
-      },
-      {
-        id: 2,
-        title: 'Breathing Exercises',
-        description: 'Simple techniques to reduce anxiety',
-        url: '/exercises/breathing'
-      },
-      {
-        id: 3,
-        title: 'Mood Tracking',
-        description: 'Track your mental health journey',
-        url: '/tools/mood-tracker'
-      }
-    ]
+    resources: sortedResources
   });
 });
 
