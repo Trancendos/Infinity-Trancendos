@@ -1,0 +1,12 @@
+<!DOCTYPE html><meta charset="UTF-8"><title>Infinity</title>
+<h2>Infinity-Trancendos Installer</h2>
+<button onclick="run()">Run Installer</button>
+<pre id="log"></pre>
+<script>
+async function run(){
+  const pre=document.getElementById('log');
+  pre.textContent="⏳ running…";
+  const r=await fetch('/api/install',{method:'POST'});
+  pre.textContent=r.ok?await r.text():'failed';
+}
+</script>

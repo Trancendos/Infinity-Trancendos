@@ -1,0 +1,12 @@
+# This GitHub Actions workflow is responsible for linting and testing the codebase.
+# It runs on every push and pull request to ensure code quality and prevent regressions.
+name: Lint & Test
+on: [push, pull_request]
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Run placeholder test
+      run: echo "stub CI – to be replaced with ShellCheck & ESLint"

@@ -1,0 +1,22 @@
+# This GitHub Actions workflow handles the deployment of the application to Fly.io.
+# It is triggered automatically after the "Lint & Test" workflow completes successfully on the main branch.
+name: Deploy (Fly.io)
+on:
+  workflow_run:
+    workflows: [Lint & Test]
+    types: [completed]
+    branches: [main]
+jobs:
+  deploy:
+    # This job only runs if the preceding "Lint & Test" workflow was successful.
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Deploy to Fly.io
+      uses: superfly/flyctl-actions@1.4
+      with:
+        args: "deploy --remote-only"
+      env:
+        FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
