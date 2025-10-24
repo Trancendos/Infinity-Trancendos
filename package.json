@@ -2,16 +2,20 @@
   "name": "infinity-trancendos",
   "version": "1.0.0",
   "type": "module",
-  "main": "src/web/server.js",
+  "main": "src/web/index.js",
   "scripts": {
-    "start": "node src/web/server.js",
-    "dev": "node src/web/server.js"
+    "start": "node src/web/index.js",
+    "dev": "node src/web/index.js",
+    "test": "mocha"
   },
   "dependencies": {
     "express": "^4.18.2"
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "mocha": "^11.7.4",
+    "supertest": "^7.1.4"
   }
 }
-
