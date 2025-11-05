@@ -38,19 +38,11 @@ jobs:
       run: |
         echo "Updating deprecated actions/cache to v4..."
         
-        # Update actions/cache@v1 to actions/cache@v4
+        # Update actions/cache@v1 and actions/cache@v2 to actions/cache@v4
         find .github/workflows/ -name "*.yml" -o -name "*.yaml" | while read file; do
-          if grep -q "actions/cache@v1" "$file"; then
-            sed -i 's|actions/cache@v1|actions/cache@v4|g' "$file"
-            echo "Updated $file (v1 -> v4)"
-          fi
-        done
-        
-        # Update actions/cache@v2 to actions/cache@v4
-        find .github/workflows/ -name "*.yml" -o -name "*.yaml" | while read file; do
-          if grep -q "actions/cache@v2" "$file"; then
-            sed -i 's|actions/cache@v2|actions/cache@v4|g' "$file"
-            echo "Updated $file (v2 -> v4)"
+          if grep -q "actions/cache@v[12]" "$file"; then
+            sed -i 's|actions/cache@v[12]|actions/cache@v4|g' "$file"
+            echo "Updated $file"
           fi
         done
     
