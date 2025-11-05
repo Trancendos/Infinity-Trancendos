@@ -1,0 +1,80 @@
+name: Auto-fix Deprecated Actions
+
+on:
+  schedule:
+    # Run weekly on Monday at 9:00 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  check-and-fix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Check for deprecated actions/cache
+      id: check
+      run: |
+        echo "Checking for deprecated actions/cache versions..."
+        
+        # Search for deprecated actions/cache@v1 or actions/cache@v2
+        if grep -r "actions/cache@v[12]" .github/workflows/ 2>/dev/null; then
+          echo "found=true" >> $GITHUB_OUTPUT
+          echo "❌ Found deprecated actions/cache versions"
+        else
+          echo "found=false" >> $GITHUB_OUTPUT
+          echo "✅ No deprecated actions/cache versions found"
+        fi
+    
+    - name: Update deprecated actions/cache to v4
+      if: steps.check.outputs.found == 'true'
+      run: |
+        echo "Updating deprecated actions/cache to v4..."
+        
+        # Update actions/cache@v1 and actions/cache@v2 to actions/cache@v4
+        find .github/workflows/ -name "*.yml" -o -name "*.yaml" | while read file; do
+          if grep -q "actions/cache@v[12]" "$file"; then
+            sed -i 's|actions/cache@v[12]|actions/cache@v4|g' "$file"
+            echo "Updated $file"
+          fi
+        done
+    
+    - name: Create Pull Request
+      if: steps.check.outputs.found == 'true'
+      uses: peter-evans/create-pull-request@v6
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: 'chore: update actions/cache to v4'
+        title: 'chore: Update deprecated actions/cache to v4'
+        body: |
+          ## 🤖 Automated Update
+          
+          This PR automatically updates deprecated `actions/cache@v1` and `actions/cache@v2` to `actions/cache@v4`.
+          
+          ### Changes
+          - ✅ Updated all instances of `actions/cache@v1` to `actions/cache@v4`
+          - ✅ Updated all instances of `actions/cache@v2` to `actions/cache@v4`
+          
+          ### Why?
+          - `actions/cache@v1` and `actions/cache@v2` are deprecated
+          - `actions/cache@v4` includes performance improvements and bug fixes
+          - Keeping actions up-to-date ensures better security and reliability
+          
+          ### Testing
+          Please verify that workflows continue to work as expected.
+          
+          ---
+          *This PR was created automatically by the `auto-fix-deprecated-actions` workflow.*
+        branch: chore/auto-update-actions-cache-to-v4
+        delete-branch: true
+        labels: |
+          automated
+          dependencies
+          chore
