@@ -93,6 +93,7 @@ jobs:
       if: always()
       run: |
         echo "Cleaning up..."
+        SERVER_PID="${SERVER_PID:-${{ env.SERVER_PID }}}"
         if [ -n "$SERVER_PID" ]; then
           kill $SERVER_PID 2>/dev/null || true
           echo "Server process terminated"
