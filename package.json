@@ -1,17 +1,33 @@
 {
   "name": "infinity-trancendos",
   "version": "1.0.0",
+  "description": "Trancendos Ecosystem - Central hub with Infinity gateway, AI integrations, and platform orchestration",
   "type": "module",
   "main": "src/web/server.js",
   "scripts": {
     "start": "node src/web/server.js",
-    "dev": "node src/web/server.js"
+    "dev": "NODE_ENV=development node src/web/server.js",
+    "test": "echo \"Tests coming soon\" && exit 0"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.21.2",
+    "helmet": "^8.0.0",
+    "express-rate-limit": "^7.4.1",
+    "express-validator": "^7.2.0",
+    "cors": "^2.8.5",
+    "winston": "^3.17.0",
+    "dotenv": "^16.4.7"
   },
   "engines": {
     "node": ">=18.0.0"
-  }
+  },
+  "keywords": [
+    "trancendos",
+    "infinity",
+    "ai-platform",
+    "orchestration",
+    "automation"
+  ],
+  "author": "Trancendos",
+  "license": "MIT"
 }
-
