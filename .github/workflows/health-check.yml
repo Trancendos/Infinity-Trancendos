@@ -12,31 +12,77 @@ jobs:
     
     steps:
     - name: Check Service Health
+      id: health_check
       run: |
-        # Add your deployed service URL here once deployed
-        # For now, this is a placeholder that will be updated
-        echo "Health check monitoring configured"
-        echo "Update HEALTH_CHECK_URL in this workflow after deployment"
+        # Configuration
+        HEALTH_CHECK_URL="${HEALTH_CHECK_URL:-https://your-app.onrender.com/health}"
+        MAX_RETRIES=3
+        RETRY_DELAY=5
         
-        # Example health check (uncomment and update URL after deployment):
-        # HEALTH_CHECK_URL="https://your-app.onrender.com/health"
-        # response=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_CHECK_URL)
-        # if [ $response -eq 200 ]; then
-        #   echo "✅ Service is healthy"
-        # else
-        #   echo "❌ Service health check failed with status: $response"
-        #   exit 1
-        # fi
+        echo "Health Check Monitor"
+        echo "==================="
+        echo "Target URL: $HEALTH_CHECK_URL"
+        echo "Max Retries: $MAX_RETRIES"
+        echo ""
+        
+        # Check if URL is configured
+        if [[ "$HEALTH_CHECK_URL" == *"your-app"* ]]; then
+          echo "⚠️  Health check URL not configured yet"
+          echo "Please update the HEALTH_CHECK_URL in this workflow after deployment"
+          echo "status=not_configured" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        
+        # Perform health check with retries
+        for i in $(seq 1 $MAX_RETRIES); do
+          echo "Attempt $i/$MAX_RETRIES..."
+          
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$HEALTH_CHECK_URL" || echo "000")
+          
+          echo "Response code: $HTTP_CODE"
+          
+          if [ "$HTTP_CODE" -eq 200 ]; then
+            echo "✓ Service is healthy!"
+            echo "status=healthy" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          if [ $i -lt $MAX_RETRIES ]; then
+            echo "Waiting ${RETRY_DELAY}s before retry..."
+            sleep $RETRY_DELAY
+          fi
+        done
+        
+        echo "✗ Service health check failed after $MAX_RETRIES attempts"
+        echo "Last HTTP status: $HTTP_CODE"
+        echo "status=unhealthy" >> $GITHUB_OUTPUT
+        exit 1
+      env:
+        HEALTH_CHECK_URL: ${{ secrets.HEALTH_CHECK_URL || '' }}
     
     - name: Create Issue on Failure
-      if: failure()
+      if: failure() && steps.health_check.outputs.status == 'unhealthy'
       uses: actions/github-script@v7
       with:
         script: |
-          github.rest.issues.create({
+          const { data: issues } = await github.rest.issues.listForRepo({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            title: '🚨 Service Health Check Failed',
-            body: 'The automated health check has detected that the service is down or unhealthy. Please investigate immediately.',
-            labels: ['bug', 'high-priority', 'service-down']
-          })
+            state: 'open',
+            labels: 'service-down',
+            per_page: 1
+          });
+          
+          // Only create a new issue if one doesn't already exist
+          if (issues.length === 0) {
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 Service Health Check Failed',
+              body: `## Service Health Check Failed\n\n**Time:** ${new Date().toISOString()}\n**Workflow Run:** ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}\n\nThe automated health check has detected that the service is down or unhealthy.\n\n### Action Required\n1. Check the service logs\n2. Verify the deployment status\n3. Test the health endpoint manually\n4. Close this issue once the service is restored`,
+              labels: ['bug', 'high-priority', 'service-down']
+            });
+            console.log('Created new service-down issue');
+          } else {
+            console.log('Service-down issue already exists, skipping creation');
+          }
