@@ -22,34 +22,32 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Pre-sorted resources - sorted once at startup for better performance
+const RESOURCES = [
+  {
+    id: 2,
+    title: 'Breathing Exercises',
+    description: 'Simple techniques to reduce anxiety',
+    url: '/exercises/breathing'
+  },
+  {
+    id: 1,
+    title: 'Crisis Helpline',
+    description: 'Available 24/7 for immediate support',
+    contact: '988 (US Suicide & Crisis Lifeline)'
+  },
+  {
+    id: 3,
+    title: 'Mood Tracking',
+    description: 'Track your mental health journey',
+    url: '/tools/mood-tracker'
+  }
+];
+
 // API endpoint for mental health resources
 app.get('/api/resources', (req, res) => {
-  const resources = [
-    {
-      id: 1,
-      title: 'Crisis Helpline',
-      description: 'Available 24/7 for immediate support',
-      contact: '988 (US Suicide & Crisis Lifeline)'
-    },
-    {
-      id: 2,
-      title: 'Breathing Exercises',
-      description: 'Simple techniques to reduce anxiety',
-      url: '/exercises/breathing'
-    },
-    {
-      id: 3,
-      title: 'Mood Tracking',
-      description: 'Track your mental health journey',
-      url: '/tools/mood-tracker'
-    }
-  ];
-  
-  // Sort resources alphabetically by title
-  const sortedResources = resources.sort((a, b) => a.title.localeCompare(b.title));
-  
   res.json({
-    resources: sortedResources
+    resources: RESOURCES
   });
 });
 
@@ -89,6 +87,8 @@ const shutdown = (signal) => {
   }, 10000);
 };
 
-process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('SIGINT', () => shutdown('SIGINT'));
+// Register shutdown handlers for graceful termination
+['SIGTERM', 'SIGINT'].forEach(signal => {
+  process.on(signal, () => shutdown(signal));
+});
 
