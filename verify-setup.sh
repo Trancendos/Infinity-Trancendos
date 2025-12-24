@@ -56,47 +56,41 @@ done
 echo ""
 echo "✓ Testing server startup..."
 
-# Kill any existing servers on port 3000
-pkill -f "node src/web/server.js" 2>/dev/null || true
-sleep 1
-
-timeout 15 bash -c '
-    npm start &
-    SERVER_PID=$!
-    sleep 3
+# Start server in background and capture PID
+npm start &
+SERVER_PID=$!
+echo "  Server started with PID: $SERVER_PID"
+sleep 3
     
-    # Test health endpoint
-    if curl -f -s http://localhost:3000/health > /dev/null; then
-        echo "  ✓ Health check endpoint responding"
-    else
-        echo "  ✗ Health check failed"
-        kill $SERVER_PID 2>/dev/null || true
-        exit 1
-    fi
-    
-    # Test API endpoint
-    if curl -f -s http://localhost:3000/api/resources > /dev/null; then
-        echo "  ✓ API endpoint responding"
-    else
-        echo "  ✗ API endpoint failed"
-        kill $SERVER_PID 2>/dev/null || true
-        exit 1
-    fi
-    
-    # Test 404
-    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/nonexistent)
-    if [ "$HTTP_CODE" = "404" ]; then
-        echo "  ✓ 404 handling working"
-    else
-        echo "  ✗ 404 handling failed (got $HTTP_CODE)"
-    fi
-    
-    # Cleanup
+# Test health endpoint
+if curl -f -s http://localhost:3000/health > /dev/null; then
+    echo "  ✓ Health check endpoint responding"
+else
+    echo "  ✗ Health check failed"
     kill $SERVER_PID 2>/dev/null || true
-' || echo "  ⚠️  Server test timed out or failed"
+    exit 1
+fi
 
-# Final cleanup
-pkill -f "node src/web/server.js" 2>/dev/null || true
+# Test API endpoint
+if curl -f -s http://localhost:3000/api/resources > /dev/null; then
+    echo "  ✓ API endpoint responding"
+else
+    echo "  ✗ API endpoint failed"
+    kill $SERVER_PID 2>/dev/null || true
+    exit 1
+fi
+
+# Test 404
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/nonexistent)
+if [ "$HTTP_CODE" = "404" ]; then
+    echo "  ✓ 404 handling working"
+else
+    echo "  ✗ 404 handling failed (got $HTTP_CODE)"
+fi
+
+# Cleanup - kill the specific server process
+kill $SERVER_PID 2>/dev/null || true
+wait $SERVER_PID 2>/dev/null || true
 
 echo ""
 echo "✅ Setup verification complete!"
