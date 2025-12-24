@@ -50,13 +50,3 @@ function formatUptime(seconds) {
     const secs = uptime % 60;
     return `${hours}h ${minutes}m ${secs}s`;
 }
-
-/**
- * Generic error handler for displaying errors to users
- * @param {Error} error - The error object
- * @param {string} context - Context where the error occurred
- */
-function handleError(error, context = 'Operation') {
-    console.error(`${context} failed:`, error);
-    // You can extend this to show toast notifications or other UI feedback
-}

@@ -1,8 +1,12 @@
 import express from 'express';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+
+// Load environment variables from .env file
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -22,13 +26,21 @@ app.use(helmet({
   },
 }));
 
-// Rate limiting
-const limiter = rateLimit({
+// Rate limiting for API endpoints
+const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
   message: 'Too many requests from this IP, please try again later.',
 });
-app.use('/api/', limiter);
+app.use('/api/', apiLimiter);
+
+// Separate rate limiter for health checks (more permissive for monitoring)
+const healthLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 30, // Allow more frequent health checks for monitoring systems
+  message: 'Too many health check requests.',
+});
+app.use('/health', healthLimiter);
 
 // Middleware
 app.use(express.json());
