@@ -4,20 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Infinity-Trancendos - Mental Health Support</title>
+    <link rel="stylesheet" href="/styles/common.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            color: #333;
         }
         
         header {
@@ -226,33 +217,20 @@
         <p style="font-size: 0.9rem; margin-top: 0.5rem;">If you're experiencing a mental health emergency, please call 911 or go to your nearest emergency room.</p>
     </footer>
     
+    <script src="/js/api-utils.js"></script>
     <script>
-        // Load resources dynamically from API
-        async function loadResources() {
-            try {
-                const response = await fetch('/api/resources');
-                const data = await response.json();
-                console.log('Resources loaded:', data);
-            } catch (error) {
-                console.error('Failed to load resources:', error);
-            }
-        }
-        
-        // Check service health
-        async function checkHealth() {
-            try {
-                const response = await fetch('/health');
-                const data = await response.json();
-                console.log('Service health:', data);
-            } catch (error) {
-                console.error('Health check failed:', error);
-            }
-        }
-        
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            loadResources();
-            checkHealth();
+        document.addEventListener('DOMContentLoaded', async () => {
+            const resources = await loadResources();
+            if (resources) {
+                console.log('Resources loaded:', resources);
+            }
+            
+            const health = await checkHealth();
+            if (health) {
+                console.log('Service health:', health);
+            }
+            
             // Check health every 5 minutes
             setInterval(checkHealth, 300000);
         });

@@ -1,4 +1,6 @@
 import express from 'express';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -7,6 +9,26 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      connectSrc: ["'self'"],
+    },
+  },
+}));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+});
+app.use('/api/', limiter);
 
 // Middleware
 app.use(express.json());
@@ -22,34 +44,32 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Pre-sorted resources (sorted once at startup, not on every request)
+const RESOURCES = [
+  {
+    id: 2,
+    title: 'Breathing Exercises',
+    description: 'Simple techniques to reduce anxiety',
+    url: '/exercises/breathing'
+  },
+  {
+    id: 1,
+    title: 'Crisis Helpline',
+    description: 'Available 24/7 for immediate support',
+    contact: '988 (US Suicide & Crisis Lifeline)'
+  },
+  {
+    id: 3,
+    title: 'Mood Tracking',
+    description: 'Track your mental health journey',
+    url: '/tools/mood-tracker'
+  }
+].sort((a, b) => a.title.localeCompare(b.title));
+
 // API endpoint for mental health resources
 app.get('/api/resources', (req, res) => {
-  const resources = [
-    {
-      id: 1,
-      title: 'Crisis Helpline',
-      description: 'Available 24/7 for immediate support',
-      contact: '988 (US Suicide & Crisis Lifeline)'
-    },
-    {
-      id: 2,
-      title: 'Breathing Exercises',
-      description: 'Simple techniques to reduce anxiety',
-      url: '/exercises/breathing'
-    },
-    {
-      id: 3,
-      title: 'Mood Tracking',
-      description: 'Track your mental health journey',
-      url: '/tools/mood-tracker'
-    }
-  ];
-  
-  // Sort resources alphabetically by title
-  const sortedResources = resources.sort((a, b) => a.title.localeCompare(b.title));
-  
   res.json({
-    resources: sortedResources
+    resources: RESOURCES
   });
 });
 
